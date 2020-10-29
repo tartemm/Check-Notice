@@ -58,8 +58,8 @@ def detail(request, dogovor_id):
         d1 = k.kt_end
         delta = d0 - d1
         k.prosrochka = int(str(delta.days))
-        # if k.prosrochka > 0:
-        #     send_mail('Просрочка', 'Добрый день! У вас просрочка контрольной точки, зайдите на сайт.', 'tartemm1@gmail.com', ['tartem-98@mail.ru'], fail_silently=False)
+        if k.prosrochka > 0:
+            send_mail('Просрочка', 'Добрый день! У вас просрочка контрольной точки, зайдите на сайт.', 'tartemm1@gmail.com', ['tartem-98@mail.ru'], fail_silently=False)
     return render(request, 'mainpage/detail.html', {'dogovor': el, 'comments': comments, 'kts': kts})
 
 
