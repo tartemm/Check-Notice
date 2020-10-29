@@ -1,0 +1,31 @@
+{% extends 'mainpage/base.html' %}
+
+{% block title %}
+Новый договор
+{% endblock %}
+
+{% block content %}
+    <h1>Добавить договор</h1>
+
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.who }}<br>
+        {{ form.type }}<br>
+        {{ form.status }}<br>
+        {{ form.name }}<br>
+        {{ form.predmet }}<br>
+        {{ form.price }}<br>
+        {{ form.agent }}<br>
+        {{ form.date_start }}<br>
+        {{ form.date_end }}<br>
+
+
+        <button type="submit" class="btn btn-success">Добавить</button>
+        <span>{{ error }}</span>
+    </form>
+
+
+
+{% endblock %}

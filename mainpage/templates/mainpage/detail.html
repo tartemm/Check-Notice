@@ -1,0 +1,215 @@
+{% extends 'mainpage/base.html' %}
+
+{% block title %}
+    {{ dogovor.name }}
+{% endblock %}
+
+{% block content %}
+    <h2>{{ dogovor.name }}</h2>
+    <hr>
+    {% if dogovor.status == 'in_progress' %}
+      <p>Статус: выполняется</p>
+    {% elif dogovor.status == 'done' %}
+      <p>Статус: завершён</p>
+    {% endif %}
+
+
+    <h5>Предмет договора: </h5> <p>{{ dogovor.predmet }}</p>
+    <h5>Цена: </h5> <p>{{ dogovor.price }} рублей</p>
+    <h5>Контрагент: </h5> <p>{{ dogovor.agent }}</p>
+    <h5>Время действия договора: </h5> <p>{{ dogovor.date_start }} - {{ dogovor.date_end }}</p>
+
+    <hr>
+
+    <h5>Контрольные точки </h5>
+
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <!-- <th></th> -->
+            <th>Статус</th>
+            <th>Название этапа</th>
+            <th>Дата начала</th>
+            <th>Дата окончания</th>
+            <th width="10%">Просрочка исполнения обязательств (дни)</th>
+            <th width="10%">Претензии</th>
+            <th width="10%"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for k in kts %}
+              <tr>
+                <td>{{ k.kt_status }}</td>
+                <td>{{ k.kt_name }}</td>
+                <td>{{ k.kt_start }}</td>
+                <td>{{ k.kt_end }}</td>
+                {% if k.prosrochka > 0 and k.kt_status == 'в процессе'  %}
+                    <td>{{ k.prosrochka }}</td>
+                    <td>
+                        <form action="{% url 'pretenzia' dogovor.id %}">
+                            <button type="submit" class="btn btn-secondary">Сформировать претензию</button>
+                        </form>
+                    </td>
+                    <th><font color="red">ПРОСРОЧКА</font></th>
+                {% else %}
+                    <td>0</td>
+                {% endif %}
+              </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <hr>
+
+    <h5>Добавить этап:</h5>
+
+    <form action="{% url 'new_kt' dogovor.id %}" method="POST">
+        {% csrf_token %}
+        <select name="kt_status">
+            <option selected="selected">Статус</option>
+            <option>не начался</option>
+            <option>в процессе</option>
+            <option>завершён</option>
+        </select><br>
+        {% if dogovor.type == 'postavka' %}
+            {% if dogovor.who == 'zakazchik' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Согласование условий договора</option>
+                <option>Отправка отгрузочной разнарядки поставщику</option>
+                <option>Приём товара</option>
+                <option>Осмотр и проверка товара</option>
+                <option>Получение счёта</option>
+                <option>Оплата товара</option>
+                <option>Предъявление требований</option>
+                <option>Выполнение требований контрагентом</option>
+            </select><br>
+            {% elif dogovor.who == 'ispolnitel' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Согласование условий договора</option>
+                <option>Получение отгрузочной разнарядки от продавца</option>
+                <option>Передача товаров перевозчику</option>
+                <option>Передача товара покупателю</option>
+                <option>Поступление оплаты</option>
+                <option>Получение назад многооборотной тары</option>
+                <option>Предъявление требований</option>
+                <option>Выполнение требований контрагентом</option>
+            </select><br>
+            {% endif %}
+        {% elif dogovor.type == 'uslugi' %}
+            {% if dogovor.who == 'zakazchik' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Предоставление документации исполнителю</option>
+                <option>Получение вариантов разрешения спорного вопроса</option>
+                <option>Подача исполнителем документов в суд</option>
+                <option>Представление исполнителем интересов заказчика</option>
+                <option>Получение разъяснений порядка и значения действий, совершаемых исполнителем</option>
+                <option>Осуществление исполнителем действий по исполнению судебного решения</option>
+                <option>Получение отчётов исполнителя</option>
+                <option>Получение Акта об оказании юридических услуг</option>
+                <option>Подписание Акта об оказании юридических услуг</option>
+                <option>Оплата</option>
+            </select><br>
+            {% elif dogovor.who == 'ispolnitel' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Получение документации для изучения</option>
+                <option>Предоставление вариантов разрешения спорной ситуации</option>
+                <option>Подготовка и подача документов в суд</option>
+                <option>Представительство</option>
+                <option>Получение оплаты</option>
+                <option>Составление и отправка Акта об оказании юридических услуг</option>
+            </select><br>
+            {% endif %}
+        {% elif dogovor.type == 'perevoz' %}
+            {% if dogovor.who == 'zakazchik' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Согласование условий договора</option>
+                <option>Составление транспортной накладной и подготовка груза к перевозке</option>
+                <option>Предъявление груза для погрузки и передача транспортной накладной при погрузке груза</option>
+                <option>Погрузка груза</option>
+                <option>Получение транспортной накладной, акта об оказании услуг и счета на оплату после вручения груза грузополучателя</option>
+                <option>Поступление провозной платы</option>
+                <option>Выгрузка груза</option>
+                <option>Отправление акта об оказании услуг и транспортной накладной перевозчику</option>
+                <option>Предъявление требований</option>
+                <option>Выполнение требований контрагентом</option>
+            </select><br>
+            {% elif dogovor.who == 'ispolnitel' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Согласование условий</option>
+                <option>Подача транспортных средств под погрузку</option>
+                <option>Погрузка груза</option>
+                <option>Подписание транспортной накладной при погрузке и её отправка</option>
+                <option>Доставка груза</option>
+                <option>Выгрузка груза</option>
+                <option>Осмотр и проверка груза</option>
+                <option>Передача груза, подписание и передача транспортных накладных грузополучателю</option>
+                <option>Составление акта об оказании услуг и его передача вместе с транспортной накладной грузоотправителю</option>
+                <option>Оплата провозной платы</option>
+                <option>Предъявление требований</option>
+                <option>Выполнение требований контрагентом</option>
+            </select><br>
+            {% endif %}
+        {% elif dogovor.type == 'stroitelny' %}
+            {% if dogovor.who == 'zakazchik' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Срок выполнения работ</option>
+                <option>Обеспечение подрядчиком работ оборудованием</option>
+                <option>Обеспечение подрядчиком работ строительными материалами</option>
+                <option>Предоставление подрядчиком копии страхового полиса</option>
+                <option>Предоставление подрядчиком копии страхового полиса до приёмки объекта Заказчиком</option>
+                <option>Качество выполненных работ</option>
+                <option>Оплата</option>
+            </select><br>
+            {% elif dogovor.who == 'ispolnitel' %}
+            <select name="kt_name">
+                <option selected="selected">Название этапа</option>
+                <option>Предоставление объекта, земельного участка</option>
+                <option>Предоставление заказчиком документов</option>
+                <option>Обеспечение заказчиком работ строительными материалами</option>
+                <option>Предоставление заказчиком страхового полиса</option>
+                <option>Приемка заказчиком результата работ</option>
+                <option>Получение оплаты</option>
+            </select><br>
+            {% endif %}
+        {% endif %}
+        <input type="date" required placeholder="Дата начала" name="kt_start" value="">  Дата начала<br>
+        <input type="date" required placeholder="Дата окончания" name="kt_end" value="">  Дата окончания<br>
+
+
+        <button type="submit" class="btn btn-success">Добавить</button>
+
+    </form>
+
+    <hr>
+
+    <h5>Комментарии: </h5>
+    {% if comments %}
+        {% for c in comments %}
+            <p>
+                <strong>{{ c.author }}</strong>
+                <p>{{ c.comment_text }}</p>
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <hr>
+
+    <form action="{% url 'leave_comment' dogovor.id %}" method="POST">
+        {% csrf_token %}
+        <input type="text" required placeholder="Ваше имя" name="author" value=""><br>
+        <textarea name="comment_text" placeholder="Текст комментария" rows="5" cols="80"></textarea><br>
+
+        <button type="submit" class="btn btn-success">Оставить комментарий</button>
+
+    </form>
+
+{% endblock %}
